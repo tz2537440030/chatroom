@@ -5,6 +5,8 @@
   "scripts": {
     "generate": "prisma generate",
     "dev": "npm run generate && npx tsx app.ts",
+    "dev-db-push": "npx prisma db push && npm run generate",
+    "migrate": "npx prisma migrate dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

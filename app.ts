@@ -11,12 +11,6 @@ app.get('/users', async (req, res) => {
   res.json(users);
 });
 
-app.post('/users', async (req, res) => {
-  const { name, email } = req.body;
-  const user = await prisma.user.create({ data: { name, email } });
-  res.json(user);
-});
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
