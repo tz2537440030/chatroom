@@ -4,6 +4,11 @@
     "module": "CommonJS",
     "esModuleInterop": true,
     "strict": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],     // 路径别名设置
+      "#/*": ["prisma/*"]
+    }
   }
 }

@@ -1,15 +1,11 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import express from "express";
+import * as bodyParser from "body-parser";
+import router from "@/routes/index";
 
 const app = express();
-const prisma = new PrismaClient();
-
 app.use(express.json());
-
-app.get('/users', async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
-});
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use("/apis", router);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
