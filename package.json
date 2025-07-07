@@ -4,7 +4,7 @@
   "main": "app.ts",
   "scripts": {
     "generate": "prisma generate",
-    "dev": "npm run generate && npx tsx app.ts",
+    "dev": "npm run generate && nodemon --watch src --ext ts,tsx --exec tsx app.ts",
     "dev-db-push": "npx prisma db push && npm run generate",
     "migrate": "npx prisma migrate dev",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,13 +17,18 @@
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.4",
     "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.0.10",
+    "@types/nodemailer": "^6.4.17",
+    "nodemon": "^3.1.10",
     "prisma": "^6.11.0",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.20.3",
