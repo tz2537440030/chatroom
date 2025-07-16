@@ -8,17 +8,20 @@ datasource db {
 }
 
 model User {
-  id                    Int             @id @default(autoincrement())
-  username              String          @unique
-  nickname              String
-  password              String
-  avatar                String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  sendFriendRequests    FriendRequest[] @relation("SendFriendRequests")
-  receiveFriendRequests FriendRequest[] @relation("ReceiveFriendRequests")
-  friendshipInitiated   Friendship[]    @relation("FriendshipInitiated")
-  friendshipAccepted    Friendship[]    @relation("FriendshipAccepted")
+  id                       Int                        @id @default(autoincrement())
+  username                 String                     @unique
+  nickname                 String
+  password                 String
+  avatar                   String?
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  sendFriendRequests       FriendRequest[]            @relation("SendFriendRequests")
+  receiveFriendRequests    FriendRequest[]            @relation("ReceiveFriendRequests")
+  friendshipInitiated      Friendship[]               @relation("FriendshipInitiated")
+  friendshipAccepted       Friendship[]               @relation("FriendshipAccepted")
+  groupChatCreator         Conversation[]             @relation("GroupChatCreator")
+  conversationParticipants ConversationParticipants[] @relation("ConversationParticipantsUser")
+  messageSender            Message[]                  @relation("MessageSender")
 }
 
 model FriendRequest {
@@ -42,4 +45,38 @@ model Friendship {
   user2     User     @relation("FriendshipAccepted", fields: [user2Id], references: [id])
 
   @@unique([user1Id, user2Id])
+}
+
+model Conversation {
+  id           Int                        @id @default(autoincrement())
+  name         String? //群名称（私聊为null）
+  isGroup      Boolean                    @default(false) //是否为群聊
+  creatorId    Int? //群创建者（私聊为null）
+  creator      User?                      @relation("GroupChatCreator", fields: [creatorId], references: [id])
+  avatar       String? //群头像
+  messages     Message[]                  @relation("MessageConversation")
+  participants ConversationParticipants[] @relation("ConversationParticipants")
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+}
+
+model ConversationParticipants {
+  id             Int          @id @default(autoincrement())
+  userId         Int
+  conversationId Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation("ConversationParticipantsUser", fields: [userId], references: [id])
+  conversation   Conversation @relation("ConversationParticipants", fields: [conversationId], references: [id])
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  senderId       Int
+  conversationId Int
+  content        String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  sender         User         @relation("MessageSender", fields: [senderId], references: [id])
+  conversation   Conversation @relation("MessageConversation", fields: [conversationId], references: [id])
 }

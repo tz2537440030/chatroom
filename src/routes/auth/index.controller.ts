@@ -4,9 +4,6 @@ import { sendVerifyCode, verifyCode } from "@/utils/send-email";
 import { comparePassword } from "@/utils/bcrypt";
 import { generateToken } from "@/utils/token";
 
-// 临时验证码存储
-const emailCodeMap = new Map<string, string | undefined>();
-
 export const register = async (
   req: { body: { username: any; password: any; nickname: any; code: any } },
   res: any
@@ -52,11 +49,22 @@ export const login = async (req: any, res: any) => {
       code: 0,
       data: {
         token,
-        user,
+        user: {
+          id: user.id,
+          username: user.username,
+          nickname: user.nickname,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          avatar: user.avatar,
+        },
       },
       message: "登录成功",
     });
   } else {
     throw new HttpException(400, "密码错误");
   }
+};
+
+export const logout = async (req: any, res: any) => {
+  res.json({ code: 0, message: "退出登录成功" });
 };
