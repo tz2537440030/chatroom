@@ -1,9 +1,11 @@
 import HttpException from "@/models/http-exception.model";
 import {
   checkIsExistConversation,
+  findConversationList,
   findMessages,
   insertConversationParticipants,
   insertSingleConversation,
+  updateMessageStatus,
 } from "./index.service";
 
 export const createConversation = async (
@@ -20,6 +22,7 @@ export const createConversation = async (
     Number(senderId)
   );
   if (isExisting) {
+    await updateMessageStatus(isExisting.id, Number(userId));
     const messages = await findMessages(isExisting.id);
     return res.json({
       code: 0,
@@ -52,6 +55,17 @@ export const getMessages = async (
   }
   const messages = await findMessages(Number(conversationId), skip || 0);
   if (messages) {
-    res.json({ code: 0, data: { messages: messages.reverse() } });
+    res.json({
+      code: 0,
+      data: { messages: messages.reverse() },
+    });
+  }
+};
+
+export const getConversationList = async (req: any, res: any) => {
+  const userId = req.headers["x-custom-header"];
+  const count = await findConversationList(Number(userId));
+  if (count) {
+    res.json({ code: 0, data: count });
   }
 };

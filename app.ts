@@ -2,7 +2,7 @@ import express from "express";
 import * as bodyParser from "body-parser";
 import router from "@/routes/index";
 import errorMiddleware from "@/models/err-middle-ware";
-import { tokenMiddleware, verifyToken } from "@/utils/token";
+import { verifyToken } from "@/utils/token";
 import { WebSocketServer } from "ws";
 import {
   checkIsExistConversation,
@@ -12,7 +12,6 @@ import {
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use("/apis/layout", tokenMiddleware);
 app.use("/apis", router);
 
 const PORT = process.env.PORT || 3000;
@@ -60,7 +59,6 @@ wss.on("connection", (ws: any, req) => {
         // 私聊
         case "private_message":
           // 判断会话是否存在,存在则插入消息,不存在则创建会话,并ws.send转发消息给会话双方
-          console.log(payload);
           const isExisting = await checkIsExistConversation(
             Number(userId),
             Number(payload.receiverId)
@@ -72,12 +70,19 @@ wss.on("connection", (ws: any, req) => {
               content: payload.content,
             });
             const receiverWs = clients.get(Number(payload.receiverId));
+            const senderWs = clients.get(Number(userId));
             if (receiverWs) {
               receiverWs.send(
                 JSON.stringify({ type: "new_message", message: sendMessage })
               );
+              receiverWs.send(
+                JSON.stringify({
+                  type: "update_conversation_list",
+                  message: sendMessage,
+                })
+              );
             }
-            ws.send(
+            senderWs?.send(
               JSON.stringify({
                 type: "message_delivered",
                 message: sendMessage,

@@ -12,15 +12,20 @@ export const verifyToken = (token: string) => {
 };
 
 export const tokenMiddleware = (req: any, res: any, next: any) => {
-  const token = req.headers.authorization;
+  const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) {
     throw new HttpException(401, "token not found");
   }
+
   try {
-    const decoded = verifyToken(token);
+    const decoded: any = verifyToken(token);
     req.user = decoded;
+    // token续期
+    const newToken = generateToken({ id: decoded.id });
+    res.setHeader("New-Token", newToken); // 返回新 Token 给客户端
     next();
   } catch (error: any) {
+    console.log(error);
     if (error.name === "TokenExpiredError") {
       throw new HttpException(401, "Token expired");
     }

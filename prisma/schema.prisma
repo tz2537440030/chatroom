@@ -66,8 +66,11 @@ model ConversationParticipants {
   conversationId Int
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  lastReadAt     DateTime     @default(now())
   user           User         @relation("ConversationParticipantsUser", fields: [userId], references: [id])
   conversation   Conversation @relation("ConversationParticipants", fields: [conversationId], references: [id])
+
+  @@unique([userId, conversationId])
 }
 
 model Message {
@@ -77,6 +80,7 @@ model Message {
   content        String
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  isRead         Boolean      @default(false)
   sender         User         @relation("MessageSender", fields: [senderId], references: [id])
   conversation   Conversation @relation("MessageConversation", fields: [conversationId], references: [id])
 }
