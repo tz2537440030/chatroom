@@ -69,3 +69,21 @@ export const getConversationList = async (req: any, res: any) => {
     res.json({ code: 0, data: count });
   }
 };
+
+export const changeMessageStatus = async (
+  req: { body: { conversationId: string }; [x: string]: any },
+  res: any
+) => {
+  const { conversationId } = req.body;
+  const userId = req.headers["x-custom-header"];
+  if (!conversationId) {
+    throw new HttpException(400, "缺少必要参数");
+  }
+  const message = await updateMessageStatus(
+    Number(conversationId),
+    Number(userId)
+  );
+  if (message) {
+    res.json({ code: 0, data: message });
+  }
+};

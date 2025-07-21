@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  changeUserInfo,
   login,
   logout,
   register,
@@ -12,5 +13,6 @@ router.post("/register", register);
 router.post("/send-verify-code", sendVerifyCodeController);
 router.post("/login", login);
 router.post("/logout", logout);
+router.post("/changeUserInfo", changeUserInfo);
 
 export default router;

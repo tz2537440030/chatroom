@@ -8,10 +8,12 @@ import {
   checkIsExistConversation,
   insertMessage,
 } from "@/routes/chat/index.service";
+import path from "path";
 
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 app.use("/apis", router);
 
 const PORT = process.env.PORT || 3000;
@@ -58,7 +60,7 @@ wss.on("connection", (ws: any, req) => {
       switch (payload.type) {
         // 私聊
         case "private_message":
-          // 判断会话是否存在,存在则插入消息,不存在则创建会话,并ws.send转发消息给会话双方
+          // 判断会话是否存在,存在则插入消息,不存在则创建会话,并send转发消息给会话双方
           const isExisting = await checkIsExistConversation(
             Number(userId),
             Number(payload.receiverId)

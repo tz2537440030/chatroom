@@ -1,5 +1,9 @@
 import HttpException from "@/models/http-exception.model";
-import { createUser, findUserByUsername } from "./index.service";
+import {
+  createUser,
+  findUserByUsername,
+  updateUserInfo,
+} from "./index.service";
 import { sendVerifyCode, verifyCode } from "@/utils/send-email";
 import { comparePassword } from "@/utils/bcrypt";
 import { generateToken } from "@/utils/token";
@@ -67,4 +71,22 @@ export const login = async (req: any, res: any) => {
 
 export const logout = async (req: any, res: any) => {
   res.json({ code: 0, message: "退出登录成功" });
+};
+
+export const changeUserInfo = async (req: any, res: any) => {
+  try {
+    const userId = req.headers["x-custom-header"];
+    const { data } = req.body;
+    const user: any = await updateUserInfo({
+      userId: Number(userId),
+      data: data,
+    });
+    if (user) {
+      delete user.password;
+      res.json({ code: 0, data: user, message: "更新成功" });
+    }
+  } catch (error) {
+    console.log(error);
+    throw new HttpException(500, "更新失败");
+  }
 };

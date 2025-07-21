@@ -30,3 +30,18 @@ export const createUser = async ({
     },
   });
 };
+
+export const updateUserInfo = async ({
+  userId,
+  data,
+}: {
+  userId: number;
+  data: any;
+}) => {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: data,
+  });
+};
