@@ -3,10 +3,12 @@ import {
   checkFriendship,
   checkRequestIsExisting,
   createFriendShip,
+  deleteFriendModel,
   findFriendByUsernameOrNickname,
   getFriendListModel,
   getFriendRequests,
   insertFriendRequest,
+  updateFriendRequestRead,
   updateRequestStatus,
 } from "./index.service";
 
@@ -103,5 +105,34 @@ export const getFriendList = async (req: any, res: any) => {
     }
   } catch (error) {
     throw new HttpException(500, "查找失败");
+  }
+};
+
+export const deleteFriend = async (req: any, res: any) => {
+  try {
+    const userId = req.headers["x-custom-header"];
+    const { friendId } = req.body;
+    const friend = await deleteFriendModel(Number(userId), Number(friendId));
+    if (friend) {
+      res.json({ code: 0, data: friend, message: "删除成功" });
+    }
+  } catch (error) {
+    console.log(error);
+    throw new HttpException(500, "删除失败");
+  }
+};
+
+export const changeFriendRequestRead = async (
+  req: { body: { id: number; isRead: boolean } },
+  res: any
+) => {
+  try {
+    const { id, isRead } = req.body;
+    const friendRequest = await updateFriendRequestRead(id, isRead);
+    if (friendRequest) {
+      res.json({ code: 0, data: friendRequest, message: "操作成功" });
+    }
+  } catch (error) {
+    throw new HttpException(500, "操作失败");
   }
 };

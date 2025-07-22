@@ -137,3 +137,26 @@ export const getFriendListModel = async (userId: number) => {
   });
   return friendships.map((item) => item.user2);
 };
+
+// 删除好友
+export const deleteFriendModel = async (userId: number, friendId: number) => {
+  return prisma.friendship.deleteMany({
+    where: {
+      OR: [
+        { user1Id: userId, user2Id: friendId },
+        { user1Id: friendId, user2Id: userId },
+      ],
+    },
+  });
+};
+
+export const updateFriendRequestRead = async (id: number, isRead: boolean) => {
+  return prisma.friendRequest.update({
+    where: {
+      id,
+    },
+    data: {
+      isRead,
+    },
+  });
+};

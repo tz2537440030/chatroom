@@ -5,6 +5,8 @@ import {
   getFriendRequestList,
   changeRequestStatus,
   getFriendList,
+  deleteFriend,
+  changeFriendRequestRead,
 } from "./index.controller";
 import { tokenMiddleware } from "@/utils/token";
 
@@ -15,5 +17,7 @@ router.post("/createFriendRequest", createFriendRequest);
 router.post("/getFriendRequestList", getFriendRequestList);
 router.post("/changeRequestStatus", changeRequestStatus);
 router.post("/getFriendList", getFriendList);
+router.post("/deleteFriend", deleteFriend);
+router.post("/changeFriendRequestRead", changeFriendRequestRead);
 
 export default router;

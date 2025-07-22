@@ -9,6 +9,7 @@ import {
   insertMessage,
 } from "@/routes/chat/index.service";
 import path from "path";
+import { findUserById, findUserByUsername } from "@/routes/auth/index.service";
 
 const app = express();
 app.use(express.json());
@@ -90,6 +91,22 @@ wss.on("connection", (ws: any, req) => {
                 message: sendMessage,
               })
             );
+          }
+          break;
+        case "friend_request":
+          const { senderId, receiverId } = payload;
+          const user = await findUserById(receiverId);
+          console.log(user, "user");
+          if (user) {
+            const receiverWs = clients.get(Number(payload.receiverId));
+            if (receiverWs) {
+              receiverWs.send(
+                JSON.stringify({
+                  type: "new_friend_request",
+                  data: senderId,
+                })
+              );
+            }
           }
           break;
       }
