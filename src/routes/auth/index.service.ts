@@ -42,6 +42,9 @@ export const updateUserInfo = async ({
     where: {
       id: userId,
     },
-    data: data,
+    data: {
+      ...data,
+      password: await hashPassword(data.password),
+    },
   });
 };

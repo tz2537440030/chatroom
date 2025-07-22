@@ -4,6 +4,7 @@ import {
   login,
   logout,
   register,
+  resetPassword,
   sendVerifyCodeController,
 } from "./index.controller";
 
@@ -14,5 +15,6 @@ router.post("/send-verify-code", sendVerifyCodeController);
 router.post("/login", login);
 router.post("/logout", logout);
 router.post("/changeUserInfo", changeUserInfo);
+router.post("/changePassword", resetPassword);
 
 export default router;

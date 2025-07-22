@@ -69,6 +69,29 @@ export const login = async (req: any, res: any) => {
   }
 };
 
+export const resetPassword = async (req: any, res: any) => {
+  try {
+    const { username, password, code } = req.body;
+    const user = await findUserByUsername(username);
+    if (!user) {
+      throw new HttpException(400, "用户不存在");
+    } else if (!password || !code) {
+      throw new HttpException(400, "缺少必要参数");
+    } else {
+      const isVerifyCode = verifyCode(username, code); // 验证Pass
+      if (isVerifyCode) {
+        await updateUserInfo({
+          userId: user.id,
+          data: { password },
+        });
+        res.json({ code: 0, message: "重置密码成功" });
+      }
+    }
+  } catch (error) {
+    throw new HttpException(500, "重置密码失败");
+  }
+};
+
 export const logout = async (req: any, res: any) => {
   res.json({ code: 0, message: "退出登录成功" });
 };
