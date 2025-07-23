@@ -25,7 +25,6 @@ export const tokenMiddleware = (req: any, res: any, next: any) => {
     res.setHeader("New-Token", newToken); // 返回新 Token 给客户端
     next();
   } catch (error: any) {
-    console.log(error);
     if (error.name === "TokenExpiredError") {
       throw new HttpException(401, "Token expired");
     }

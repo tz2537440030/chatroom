@@ -63,10 +63,9 @@ export const getFriendRequestList = async (req: any, res: any) => {
       }
     );
     if (friendRequests) {
-      res.json({ code: 0, data: friendRequests, message: "查找成功" });
+      res.json({ code: 0, data: friendRequests, message: null });
     }
   } catch (error) {
-    console.log(error);
     throw new HttpException(500, error);
   }
 };
@@ -101,7 +100,7 @@ export const getFriendList = async (req: any, res: any) => {
     const userId = req.headers["x-custom-header"];
     const friendList = await getFriendListModel(Number(userId));
     if (friendList) {
-      res.json({ code: 0, data: friendList, message: "查找成功" });
+      res.json({ code: 0, data: friendList, message: null });
     }
   } catch (error) {
     throw new HttpException(500, "查找失败");
@@ -117,7 +116,6 @@ export const deleteFriend = async (req: any, res: any) => {
       res.json({ code: 0, data: friend, message: "删除成功" });
     }
   } catch (error) {
-    console.log(error);
     throw new HttpException(500, "删除失败");
   }
 };

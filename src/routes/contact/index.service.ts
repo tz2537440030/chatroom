@@ -41,7 +41,7 @@ export const insertFriendRequest = async ({
 
 // 获取好友请求
 export const getFriendRequests = async (userId: number) => {
-  return prisma.friendRequest.findMany({
+  const requests = await prisma.friendRequest.findMany({
     where: {
       OR: [{ receiverId: userId }, { senderId: userId }],
     },
@@ -61,6 +61,16 @@ export const getFriendRequests = async (userId: number) => {
         },
       },
     },
+    orderBy: [
+      {
+        status: "asc",
+      },
+    ],
+  });
+  return requests.sort((a, b) => {
+    if (a.status === "pending" && b.status !== "pending") return -1;
+    if (a.status !== "pending" && b.status === "pending") return 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 };
 

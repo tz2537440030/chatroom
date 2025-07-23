@@ -109,7 +109,6 @@ export const changeUserInfo = async (req: any, res: any) => {
       res.json({ code: 0, data: user, message: "更新成功" });
     }
   } catch (error) {
-    console.log(error);
     throw new HttpException(500, "更新失败");
   }
 };

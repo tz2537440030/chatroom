@@ -28,22 +28,6 @@ const wss = new WebSocketServer({ server });
 const clients = new Map<number, WebSocket>();
 wss.on("connection", (ws: any, req) => {
   console.log("Client connected");
-  // 30s一次心跳包
-  let isAlive = true;
-  const heartbeatInterval = setInterval(() => {
-    if (!isAlive) {
-      ws.close(1008, "Heartbeat timeout");
-      return;
-    }
-    isAlive = false;
-    ws.ping("heartbeat", (err: any) => {
-      if (err) console.log(err);
-    });
-  }, 30000);
-
-  ws.on("pong", () => {
-    isAlive = true;
-  });
 
   try {
     // 获取token
@@ -59,6 +43,10 @@ wss.on("connection", (ws: any, req) => {
     ws.on("message", async (message: any) => {
       const payload = JSON.parse(message.toString());
       switch (payload.type) {
+        // 心跳
+        case "ping":
+          ws.send(JSON.stringify({ type: "pong" }));
+          break;
         // 私聊
         case "private_message":
           try {
@@ -100,7 +88,6 @@ wss.on("connection", (ws: any, req) => {
         case "friend_request":
           const { senderId, receiverId } = payload;
           const user = await findUserById(receiverId);
-          console.log(user, "user");
           if (user) {
             const receiverWs = clients.get(Number(payload.receiverId));
             if (receiverWs) {
