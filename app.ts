@@ -61,38 +61,42 @@ wss.on("connection", (ws: any, req) => {
       switch (payload.type) {
         // 私聊
         case "private_message":
-          // 判断会话是否存在,存在则插入消息,不存在则创建会话,并send转发消息给会话双方
-          const isExisting = await checkIsExistConversation(
-            Number(userId),
-            Number(payload.receiverId)
-          );
-          if (isExisting) {
-            const sendMessage = await insertMessage({
-              conversationId: Number(payload.conversationId),
-              senderId: Number(userId),
-              content: payload.content,
-            });
-            const receiverWs = clients.get(Number(payload.receiverId));
-            const senderWs = clients.get(Number(userId));
-            if (receiverWs) {
-              receiverWs.send(
-                JSON.stringify({ type: "new_message", message: sendMessage })
-              );
-              receiverWs.send(
+          try {
+            // 判断会话是否存在,存在则插入消息,不存在则创建会话,并send转发消息给会话双方
+            const isExisting = await checkIsExistConversation(
+              Number(userId),
+              Number(payload.receiverId)
+            );
+            if (isExisting) {
+              const sendMessage = await insertMessage({
+                conversationId: Number(payload.conversationId),
+                senderId: Number(userId),
+                content: payload.content,
+              });
+              const receiverWs = clients.get(Number(payload.receiverId));
+              const senderWs = clients.get(Number(userId));
+              if (receiverWs) {
+                receiverWs.send(
+                  JSON.stringify({ type: "new_message", message: sendMessage })
+                );
+                receiverWs.send(
+                  JSON.stringify({
+                    type: "update_conversation_list",
+                    message: sendMessage,
+                  })
+                );
+              }
+              senderWs?.send(
                 JSON.stringify({
-                  type: "update_conversation_list",
+                  type: "message_delivered",
                   message: sendMessage,
                 })
               );
             }
-            senderWs?.send(
-              JSON.stringify({
-                type: "message_delivered",
-                message: sendMessage,
-              })
-            );
+            break;
+          } catch (error) {
+            console.log(error);
           }
-          break;
         case "friend_request":
           const { senderId, receiverId } = payload;
           const user = await findUserById(receiverId);
