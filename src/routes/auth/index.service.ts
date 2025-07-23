@@ -46,13 +46,17 @@ export const updateUserInfo = async ({
   userId: number;
   data: any;
 }) => {
+  let query = { ...data };
+  if (data.password) {
+    query = {
+      ...data,
+      password: await hashPassword(data.password),
+    };
+  }
   return prisma.user.update({
     where: {
       id: userId,
     },
-    data: {
-      ...data,
-      password: await hashPassword(data.password),
-    },
+    data: query,
   });
 };
