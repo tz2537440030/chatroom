@@ -106,17 +106,14 @@ wss.on("connection", (ws: any, req) => {
     ws.on("close", () => {
       console.log(`用户 ${userId} 断开连接`);
       clients.delete(userId);
-      clearInterval(heartbeatInterval);
     });
 
     ws.on("error", (error: any) => {
       console.error(`用户 ${userId} 连接错误:`, error);
       clients.delete(userId);
-      clearInterval(heartbeatInterval);
     });
   } catch (error) {
     console.log(error);
     ws.close(1008, "Invalid token");
-    clearInterval(heartbeatInterval);
   }
 });
