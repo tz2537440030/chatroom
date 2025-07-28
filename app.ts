@@ -2,14 +2,13 @@ import express from "express";
 import * as bodyParser from "body-parser";
 import router from "@/routes/index";
 import errorMiddleware from "@/models/err-middle-ware";
-import { verifyToken } from "@/utils/token";
-import { WebSocketServer } from "ws";
 import {
   checkIsExistConversation,
   insertMessage,
 } from "@/routes/chat/index.service";
 import path from "path";
-import { findUserById, findUserByUsername } from "@/routes/auth/index.service";
+import { findUserById } from "@/routes/auth/index.service";
+import { initWebSocket, onMessage, sendMessage } from "@/utils/websocket";
 
 const app = express();
 app.use(express.json());
@@ -23,97 +22,55 @@ const server = app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
 
-// websocket
-const wss = new WebSocketServer({ server });
-const clients = new Map<number, WebSocket>();
-wss.on("connection", (ws: any, req) => {
-  console.log("Client connected");
+// 初始化WebSocket
+initWebSocket(server);
 
-  try {
-    // 获取token
-    const token = req.url?.split("token=")[1];
-    if (!token) {
-      ws.close(1008, "token not found");
-      return;
+// 聊天消息处理
+onMessage({
+  type: "private_message",
+  handler: async (payload: any, userId: any) => {
+    // 判断会话是否存在,存在则插入消息,不存在则创建会话,并send转发消息给会话双方
+    const isExisting = await checkIsExistConversation(
+      Number(userId),
+      Number(payload.receiverId)
+    );
+    if (isExisting) {
+      const sendMessages = await insertMessage({
+        conversationId: Number(payload.conversationId),
+        senderId: Number(userId),
+        content: payload.content,
+      });
+      sendMessage({
+        receiverId: payload.receiverId,
+        type: "new_message",
+        data: sendMessages,
+      });
+      sendMessage({
+        receiverId: payload.receiverId,
+        type: "update_conversation_list",
+        data: sendMessages,
+      });
+      sendMessage({
+        receiverId: userId,
+        type: "message_delivered",
+        data: sendMessages,
+      });
     }
-    const decoded: any = verifyToken(token);
-    const userId = decoded.id;
-    clients.set(Number(userId), ws);
+  },
+});
 
-    ws.on("message", async (message: any) => {
-      const payload = JSON.parse(message.toString());
-      switch (payload.type) {
-        // 心跳
-        case "ping":
-          ws.send(JSON.stringify({ type: "pong" }));
-          break;
-        // 私聊
-        case "private_message":
-          try {
-            // 判断会话是否存在,存在则插入消息,不存在则创建会话,并send转发消息给会话双方
-            const isExisting = await checkIsExistConversation(
-              Number(userId),
-              Number(payload.receiverId)
-            );
-            if (isExisting) {
-              const sendMessage = await insertMessage({
-                conversationId: Number(payload.conversationId),
-                senderId: Number(userId),
-                content: payload.content,
-              });
-              const receiverWs = clients.get(Number(payload.receiverId));
-              const senderWs = clients.get(Number(userId));
-              if (receiverWs) {
-                receiverWs.send(
-                  JSON.stringify({ type: "new_message", message: sendMessage })
-                );
-                receiverWs.send(
-                  JSON.stringify({
-                    type: "update_conversation_list",
-                    message: sendMessage,
-                  })
-                );
-              }
-              senderWs?.send(
-                JSON.stringify({
-                  type: "message_delivered",
-                  message: sendMessage,
-                })
-              );
-            }
-            break;
-          } catch (error) {
-            console.log(error);
-          }
-        case "friend_request":
-          const { senderId, receiverId } = payload;
-          const user = await findUserById(receiverId);
-          if (user) {
-            const receiverWs = clients.get(Number(payload.receiverId));
-            if (receiverWs) {
-              receiverWs.send(
-                JSON.stringify({
-                  type: "new_friend_request",
-                  data: senderId,
-                })
-              );
-            }
-          }
-          break;
-      }
-    });
-
-    ws.on("close", () => {
-      console.log(`用户 ${userId} 断开连接`);
-      clients.delete(userId);
-    });
-
-    ws.on("error", (error: any) => {
-      console.error(`用户 ${userId} 连接错误:`, error);
-      clients.delete(userId);
-    });
-  } catch (error) {
-    console.log(error);
-    ws.close(1008, "Invalid token");
-  }
+// 好友请求处理
+onMessage({
+  type: "friend_request",
+  handler: async (payload: any) => {
+    const { senderId, receiverId } = payload;
+    const user = await findUserById(receiverId);
+    if (user) {
+      sendMessage({
+        receiverId: receiverId,
+        type: "new_friend_request",
+        data: senderId,
+      });
+    }
+  },
 });
