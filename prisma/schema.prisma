@@ -22,6 +22,9 @@ model User {
   groupChatCreator         Conversation[]             @relation("GroupChatCreator")
   conversationParticipants ConversationParticipants[] @relation("ConversationParticipantsUser")
   messageSender            Message[]                  @relation("MessageSender")
+  moments                  Moments[]                  @relation("MomentsUser")
+  likeMoments              Moments[]                  @relation("MomentsLikeUsers")
+  momentComments           MomentComments[]           @relation("MomentCommentsUser")
 }
 
 model FriendRequest {
@@ -84,4 +87,27 @@ model Message {
   isRead         Boolean      @default(false)
   sender         User         @relation("MessageSender", fields: [senderId], references: [id])
   conversation   Conversation @relation("MessageConversation", fields: [conversationId], references: [id])
+}
+
+model Moments {
+  id             Int              @id @default(autoincrement())
+  userId         Int
+  content        String           @db.MediumText
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation("MomentsUser", fields: [userId], references: [id])
+  likeUsers      User[]           @relation("MomentsLikeUsers")
+  momentComments MomentComments[] @relation("MomentComments")
+  momentImages   String?          @db.MediumText //朋友圈配图，多图使用逗号分隔      
+}
+
+model MomentComments {
+  id        Int      @id @default(autoincrement())
+  momentId  Int
+  userId    Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation("MomentCommentsUser", fields: [userId], references: [id])
+  moment    Moments  @relation("MomentComments", fields: [momentId], references: [id])
 }

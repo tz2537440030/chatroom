@@ -2,6 +2,7 @@ import { Router } from "express";
 import authRouter from "./auth/index.route";
 import contactRouter from "./contact/index.route";
 import chatRouter from "./chat/index.route";
+import momentRouter from "./moment/index.route";
 import uploadRouter from "./upload/index";
 
 const router = Router();
@@ -10,6 +11,7 @@ const router = Router();
 router.use("/auth", authRouter);
 router.use("/contact", contactRouter);
 router.use("/chat", chatRouter);
+router.use("/moment", momentRouter);
 router.use("/upload", uploadRouter);
 
 export default router;
