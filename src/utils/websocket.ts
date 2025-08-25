@@ -1,5 +1,6 @@
 import { WebSocketServer } from "ws";
 import { verifyToken } from "./token";
+import { getFriendListModel } from "@/routes/contact/index.service";
 
 let wss;
 let clients = new Map<number, WebSocket>();
@@ -65,4 +66,16 @@ export const sendMessage = ({ receiverId, type, data }: any) => {
   if (receiverWs) {
     receiverWs.send(JSON.stringify({ type, data }));
   }
+};
+
+export const sendFriendsMessage = async ({ userId, type, data }: any) => {
+  const friends = await getFriendListModel(Number(userId));
+  const friendIds = friends.map((item) => item.id);
+  friendIds.forEach((item) => {
+    sendMessage({
+      receiverId: item,
+      type,
+      data,
+    });
+  });
 };

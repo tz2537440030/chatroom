@@ -25,6 +25,8 @@ model User {
   moments                  Moments[]                  @relation("MomentsUser")
   likeMoments              Moments[]                  @relation("MomentsLikeUsers")
   momentComments           MomentComments[]           @relation("MomentCommentsUser")
+  momentNoticeSender       MomentNotice[]             @relation("MomentNoticeSender")
+  MomentNoticeReceiver     MomentNotice[]             @relation("MomentNoticeReceiver")
 }
 
 model FriendRequest {
@@ -99,6 +101,7 @@ model Moments {
   likeUsers      User[]           @relation("MomentsLikeUsers")
   momentComments MomentComments[] @relation("MomentComments")
   momentImages   String?          @db.MediumText //朋友圈配图，多图使用逗号分隔      
+  momentNotice   MomentNotice[]   @relation("MomentNotice")
 }
 
 model MomentComments {
@@ -110,4 +113,23 @@ model MomentComments {
   updatedAt DateTime @updatedAt
   user      User     @relation("MomentCommentsUser", fields: [userId], references: [id])
   moment    Moments  @relation("MomentComments", fields: [momentId], references: [id])
+}
+
+enum MomentMessageType {
+  Like
+  Comment
+}
+
+model MomentNotice {
+  id         Int               @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  momentId   Int
+  type       MomentMessageType
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  isRead     Boolean           @default(false)
+  moment     Moments           @relation("MomentNotice", fields: [momentId], references: [id])
+  sender     User              @relation("MomentNoticeSender", fields: [senderId], references: [id])
+  receiver   User              @relation("MomentNoticeReceiver", fields: [receiverId], references: [id])
 }

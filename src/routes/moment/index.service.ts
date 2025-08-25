@@ -1,5 +1,5 @@
 import prisma from "#/prisma-client";
-import config from "@/config";
+import config from "@/config/index";
 import { getFriendListModel } from "../contact/index.service";
 
 export const momentResModel = {
@@ -34,6 +34,7 @@ export const createMoment = async (moment: any) => {
       momentImages: moment.momentImages,
       userId: moment.userId,
     },
+    include: momentResModel,
   });
 };
 
@@ -107,5 +108,59 @@ export const findMomentList = async (userId: number, skip?: number) => {
     take: config.momentsPageSize,
     skip: skip || 0,
     include: momentResModel,
+  });
+};
+
+export const createMomentNotice = async (
+  momentId: any,
+  type: any,
+  senderId: any,
+  receiverId: any
+) => {
+  return prisma.momentNotice.create({
+    data: {
+      momentId,
+      type,
+      senderId,
+      receiverId,
+    },
+    include: {
+      moment: true,
+      sender: {
+        select: config.userTableModel,
+      },
+    },
+  });
+};
+
+export const findMomentNoticeList = async (userId: any, skip?: number) => {
+  return prisma.momentNotice.findMany({
+    where: {
+      receiverId: userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: config.momentsPageSize,
+    skip: skip || 0,
+    include: {
+      moment: true,
+      sender: {
+        select: config.userTableModel,
+      },
+    },
+  });
+};
+
+export const updateMomentNoticeRead = async (ids: any[]) => {
+  return prisma.momentNotice.updateMany({
+    where: {
+      id: {
+        in: ids,
+      },
+    },
+    data: {
+      isRead: true,
+    },
   });
 };

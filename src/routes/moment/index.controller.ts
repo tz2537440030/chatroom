@@ -3,12 +3,14 @@ import {
   createMoment,
   createMomentComment,
   createMomentLike,
+  createMomentNotice,
   deleteMomentLike,
   findMoment,
   findMomentList,
+  findMomentNoticeList,
+  updateMomentNoticeRead,
 } from "./index.service";
-import { getFriendListModel } from "../contact/index.service";
-import { sendMessage } from "@/utils/websocket";
+import { sendFriendsMessage, sendMessage } from "@/utils/websocket";
 
 export const newMoment = async (req: any, res: any) => {
   try {
@@ -23,6 +25,11 @@ export const newMoment = async (req: any, res: any) => {
       userId: userId,
     });
     if (moment) {
+      sendFriendsMessage({
+        userId,
+        type: "new_moment",
+        data: returnMoment(moment),
+      });
       res.json({ code: 0, data: moment, message: "创建成功" });
     }
   } catch (error) {
@@ -55,7 +62,24 @@ export const likeMoment = async (req: any, res: any) => {
     const userId = req.headers["x-custom-header"];
     const moment = await createMomentLike(Number(momentId), Number(userId));
     if (moment) {
-      updateAllFriendsMomentWs(moment, userId);
+      const addNotice = await createMomentNotice(
+        Number(momentId),
+        "Like",
+        Number(userId),
+        Number(moment.userId)
+      );
+      if (addNotice) {
+        sendMessage({
+          receiverId: addNotice.moment.userId,
+          type: "new_moment_notice",
+          data: addNotice,
+        });
+      }
+      sendFriendsMessage({
+        userId,
+        type: "update_moment_info",
+        data: returnMoment(moment),
+      });
       res.json({
         code: 0,
         data: returnMoment(moment),
@@ -74,7 +98,11 @@ export const cancelLikeMoment = async (req: any, res: any) => {
     const userId = req.headers["x-custom-header"];
     const moment = await deleteMomentLike(Number(momentId), Number(userId));
     if (moment) {
-      updateAllFriendsMomentWs(moment, userId);
+      sendFriendsMessage({
+        userId,
+        type: "update_moment_info",
+        data: returnMoment(moment),
+      });
       res.json({
         code: 0,
         data: returnMoment(moment),
@@ -97,8 +125,25 @@ export const newMomentComment = async (req: any, res: any) => {
       content
     );
     if (momentComment) {
-      const moment = await findMoment(Number(momentId));
-      updateAllFriendsMomentWs(moment, userId);
+      const moment: any = await findMoment(Number(momentId));
+      const addNotice = await createMomentNotice(
+        Number(momentId),
+        "Comment",
+        Number(userId),
+        Number(moment.userId)
+      );
+      if (addNotice) {
+        sendMessage({
+          receiverId: addNotice.moment.userId,
+          type: "new_moment_notice",
+          data: addNotice,
+        });
+      }
+      sendFriendsMessage({
+        userId,
+        type: "update_moment_info",
+        data: returnMoment(moment),
+      });
       res.json({
         code: 0,
         data: returnMoment(moment),
@@ -111,22 +156,41 @@ export const newMomentComment = async (req: any, res: any) => {
   }
 };
 
+export const getMomentNoticeList = async (req: any, res: any) => {
+  try {
+    const { skip } = req.body;
+    const userId = req.headers["x-custom-header"];
+    const momentNoticeList = await findMomentNoticeList(Number(userId), skip);
+    if (momentNoticeList) {
+      res.json({
+        code: 0,
+        data: momentNoticeList,
+        message: null,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    throw new HttpException(500, "查找失败");
+  }
+};
+
+export const changeMomentNoticeRead = async (req: any, res: any) => {
+  try {
+    const { ids } = req.body;
+    const momentNotice = await updateMomentNoticeRead(ids);
+    if (momentNotice) {
+      res.json({ code: 0, data: momentNotice, message: null });
+    }
+  } catch (error) {
+    console.log(error);
+    throw new HttpException(500, "更新失败");
+  }
+};
+
 const returnMoment = (moment: any) => {
   return {
     ...moment,
     momentImages:
       moment.momentImages.length > 0 ? moment.momentImages.split(",") : [],
   };
-};
-
-const updateAllFriendsMomentWs = async (moment: any, userId: any) => {
-  const friends = await getFriendListModel(Number(userId));
-  const friendIds = friends.map((item) => item.id);
-  friendIds.forEach((item) => {
-    sendMessage({
-      receiverId: item,
-      type: "update_moment_info",
-      data: returnMoment(moment),
-    });
-  });
 };

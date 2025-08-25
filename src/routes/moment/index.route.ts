@@ -1,7 +1,9 @@
 import { Router } from "express";
 import {
   cancelLikeMoment,
+  changeMomentNoticeRead,
   getMomentList,
+  getMomentNoticeList,
   likeMoment,
   newMoment,
   newMomentComment,
@@ -15,5 +17,7 @@ router.post("/getMomentList", getMomentList);
 router.post("/likeMoment", likeMoment);
 router.post("/cancelLikeMoment", cancelLikeMoment);
 router.post("/newMomentComment", newMomentComment);
+router.post("/getMomentNoticeList", getMomentNoticeList);
+router.post("/changeMomentNoticeRead", changeMomentNoticeRead);
 
 export default router;
